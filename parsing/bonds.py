@@ -16,12 +16,6 @@ def get_bonds_history():
 
     :return: объект datatable
     """
-    return dt.fread(str(__BONDS_FOLDER__.joinpath("history.jay")))
-
-
-if __name__ == "__main__":
     all_csvs = glob(str(__BONDS_FOLDER__.joinpath("history", "*.csv")))
 
-    DT = dt.rbind(dt.iread(all_csvs))
-
-    DT.to_jay(str(__BONDS_FOLDER__.joinpath("history.jay")))
+    return dt.rbind(dt.iread(all_csvs))
