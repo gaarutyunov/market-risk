@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 
-__DEPOSITS_PATH__ = Path(__file__, 'data', 'deposits.pickle')
+__DEPOSITS_PATH__ = Path("..", "data", "deposits.pickle")
 
 
 def get_deposit_rates() -> pd.DataFrame:
