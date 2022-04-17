@@ -3,11 +3,11 @@ from pathlib import Path
 import pandas as pd
 
 
-__DEPOSITS_PATH__ = Path("..", "data", "deposits.pickle")
+__DEPOSITS_PATH__ = Path("..", "data", "deposits")
 
 
-def get_deposit_rates() -> pd.DataFrame:
-    """Возвращает информацию по ставкам депозитов с 2014 по 2022 гг.
+def get_deposit_rates(currency: str = 'RUB') -> pd.DataFrame:
+    """Возвращает информацию по ставкам депозитов с 2014 по 2022 гг по заданной валюте.
 
     Источник: https://www.cbr.ru/vfs/statistics/pdko/int_rat/deposits.xlsx
 
@@ -29,4 +29,4 @@ def get_deposit_rates() -> pd.DataFrame:
 
     :return: :class:`pandas.DataFrame` со ставками депозитов
     """
-    return pd.read_pickle(str(__DEPOSITS_PATH__))
+    return pd.read_pickle(Path(str(__DEPOSITS_PATH__), currency + '.pickle'))
