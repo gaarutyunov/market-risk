@@ -43,10 +43,10 @@ class Deposit(Security):
         df = get_deposit_rates(self.sec_id)
         return df[[self.period]] / 100
 
-    def returns(self, column: str = "CLOSE", periods: int = 1) -> pd.Series:
-        return self.history[column].sort_index()
+    def returns(self, column: str = None, periods: int = 1) -> pd.Series:
+        return self.history[self.period].diff(periods)
 
     def plot_value_at_risk(
         self, alpha: float = 0.99, window_length: int = 12, **kwargs
     ):
-        super().plot_value_at_risk(self.period, 1, alpha, window_length, **kwargs)
+        super().plot_value_at_risk(None, 1, alpha, window_length, **kwargs)

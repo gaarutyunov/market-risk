@@ -1,9 +1,10 @@
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
 
-__CREDIT_RATE_PATH__ = Path("..", "data", "credit_rate.csv")
+__CREDIT_RATE_PATH__ = Path("..", "data", "rate", "history", "rate.csv")
 
 from parsing.base import Security
 
@@ -32,5 +33,11 @@ def get_credit_rates() -> pd.DataFrame:
 
 
 class CreditRate(Security):
-    def __init__(self, folder: str, sec_id: str) -> None:
-        super().__init__(folder, sec_id)
+    def __init__(self) -> None:
+        super().__init__('rate', 'rate')
+
+    def _history(self) -> pd.DataFrame:
+        return get_credit_rates()
+
+    def returns(self, column: Union[str, list[str]] = "rate", periods: int = 1) -> pd.Series:
+        return self.history[column].diff(periods)

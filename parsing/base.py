@@ -1,7 +1,7 @@
 import abc
 from os import PathLike
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,7 @@ class Security(abc.ABC):
     @property
     def history(self) -> pd.DataFrame:
         if self._hist is None:
-            self._hist = self._history()
+            self._hist = self._history().sort_index()
 
         return self._hist
 
@@ -35,18 +35,19 @@ class Security(abc.ABC):
             header=0,
         )
 
-    def returns(self, column: str = "CLOSE", periods: int = 1) -> pd.Series:
+    def returns(
+        self, column: Union[str, list[str]] = "CLOSE", periods: int = 1
+    ) -> pd.Series:
         return (
             self.history[column]
             .replace(0, np.nan)
             .dropna()
             .pct_change(periods=periods)
-            .sort_index()
         )
 
     def value_at_risk(
         self,
-        column: str = "CLOSE",
+        column: Union[str, list[str]] = None,
         periods: int = 1,
         alpha: float = 0.99,
         window_length: int = 252,
@@ -56,7 +57,7 @@ class Security(abc.ABC):
 
     def plot_value_at_risk(
         self,
-        column: str = "CLOSE",
+        column: Union[str, list[str]] = None,
         periods: int = 1,
         alpha: float = 0.99,
         window_length: int = 252,
