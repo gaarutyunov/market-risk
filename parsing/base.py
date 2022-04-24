@@ -6,6 +6,7 @@ from typing import Callable, Union
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn.decomposition import PCA
 
 from metrics.var import calculate_garch, calculate, calculate_historical
 
@@ -14,7 +15,12 @@ class Security(abc.ABC):
     def __init__(self, folder: str, sec_id: str) -> None:
         self.folder = Path("..", "data", folder)
         self.sec_id = sec_id
-        self._hist = None
+        self._hist: pd.DataFrame = None
+        self._pca: PCA = None
+
+    @property
+    def col_name(self) -> str:
+        return self.sec_id
 
     @property
     def history_path(self) -> PathLike:
@@ -39,10 +45,7 @@ class Security(abc.ABC):
         self, column: Union[str, list[str]] = "CLOSE", periods: int = 1
     ) -> pd.Series:
         return (
-            self.history[column]
-            .replace(0, np.nan)
-            .dropna()
-            .pct_change(periods=periods)
+            self.history[column].replace(0, np.nan).dropna().pct_change(periods=periods)
         )
 
     def value_at_risk(
@@ -61,7 +64,7 @@ class Security(abc.ABC):
         periods: int = 1,
         alpha: float = 0.99,
         window_length: int = 252,
-        **kwargs
+        **kwargs,
     ):
         self.returns(column, periods).plot(
             label=kwargs.get("returns_label", "Доходность")
@@ -88,4 +91,27 @@ class Security(abc.ABC):
         plt.ylabel(kwargs.get("ylabel", "Доходность"))
         plt.xlabel("Дата")
         plt.legend()
+        plt.show()
+
+    def pca(self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3):
+        if self._pca is None or self._pca.n_components != k:
+            self._pca = PCA(n_components=k).fit(self.returns(column, periods))
+
+        return self._pca
+
+    def pca_transform(
+        self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3
+    ):
+        pca = self.pca(column, periods, k)
+        data = self.returns(column, periods)
+        return pca.transform(data)
+
+    def plot_pca(
+        self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3
+    ):
+        pca = self.pca(column, periods, k)
+        data = self.returns(column, periods)
+        plt.plot(data.columns, pca.components_.T)
+        plt.legend([f"pc$_{i}(t)$" for i in range(1, k + 1)])
+        plt.title(f"First {k} principal components")
         plt.show()

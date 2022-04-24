@@ -9,3 +9,6 @@ numpy~=1.22.3
 seaborn~=0.11.2
 matplotlib~=3.4.3
 arch~=5.2.0
+scikit-learn~=1.0
+statsmodels~=0.13.2
+tqdm~=4.62.3

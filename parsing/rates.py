@@ -34,10 +34,12 @@ def get_credit_rates() -> pd.DataFrame:
 
 class CreditRate(Security):
     def __init__(self) -> None:
-        super().__init__('rate', 'rate')
+        super().__init__("rate", "rate")
 
     def _history(self) -> pd.DataFrame:
         return get_credit_rates()
 
-    def returns(self, column: Union[str, list[str]] = "rate", periods: int = 1) -> pd.Series:
+    def returns(
+        self, column: Union[str, list[str]] = "rate", periods: int = 1
+    ) -> pd.Series:
         return self.history[column].diff(periods)

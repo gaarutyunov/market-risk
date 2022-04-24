@@ -6,7 +6,14 @@ import datatable as dt
 from glob import glob
 
 __CURRENCIES_FOLDER__ = Path("..", "data", "currencies")
-__SELECTED__CURRENCIES__ = ("EUR_RUB__TOD", "USD000000TOD", "CNY000000TOD")
+__SELECTED__CURRENCIES__ = (
+    "EUR_RUB__TOD",
+    "EUR_RUB__TOM",
+    "USD000000TOD",
+    "USD000UTSTOM",
+    "CNY000000TOD",
+    "CNYRUB_TOM",
+)
 
 import pandas as pd
 
@@ -42,3 +49,7 @@ def get_currency_returns(prices, sec_id: str, periods: int = 1) -> pd.DataFrame:
 class Currency(Security):
     def __init__(self, sec_id: str) -> None:
         super().__init__("currencies", sec_id)
+
+    @property
+    def col_name(self) -> str:
+        return "curr_" + self.sec_id

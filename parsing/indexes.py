@@ -47,3 +47,7 @@ def get_index_returns(prices, sec_id: str, periods: int = 1) -> pd.DataFrame:
 class Index(Security):
     def __init__(self, sec_id: str) -> None:
         super().__init__("index", sec_id)
+
+    @property
+    def col_name(self) -> str:
+        return "idx_" + self.sec_id

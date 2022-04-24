@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Union
 
 import datatable as dt
 
@@ -70,3 +70,18 @@ def get_coupon_history(sec_ids: Optional[Iterable[str]] = __SELECTED__BONDS__):
         return df
 
     return df[(dt.f.secid == sec_id for sec_id in sec_ids), :]
+
+
+class Bond(Security):
+    def __init__(self, sec_id: str) -> None:
+        super().__init__('bonds', sec_id)
+        self.info = get_bonds_info([sec_id])
+        self.coupon_value = self.info[0, 'COUPONVALUE']
+
+    @property
+    def col_name(self) -> str:
+        return 'bond_' + self.sec_id
+
+    def returns(self, column: Union[str, list[str]] = "YIELDCLOSE", periods: int = 1) -> pd.Series:
+        return self.history[column].diff(periods)
+

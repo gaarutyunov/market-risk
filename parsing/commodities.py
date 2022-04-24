@@ -32,6 +32,10 @@ class Brent(Security):
         super().__init__("commodities", "brent")
         self.period = period
 
+    @property
+    def col_name(self) -> str:
+        return self.sec_id + "_" + str(self.period)
+
     def _history(self) -> pd.DataFrame:
         bh = get_brent_history()
         bh_grouped = bh[:, {"LASTDELDATE": dt.max(dt.f.TRADEDATE)}, dt.by("SECID")]
