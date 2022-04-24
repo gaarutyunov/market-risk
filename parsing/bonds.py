@@ -5,6 +5,7 @@ import datatable as dt
 
 from glob import glob
 
+import numpy as np
 import pandas as pd
 
 __BONDS_FOLDER__ = Path("..", "data", "bonds")
@@ -15,6 +16,8 @@ __SELECTED__BONDS__ = (
     "SU26212RMFS9",
     "SU26215RMFS2",
 )
+
+from parsing.base import Security
 
 
 def get_bonds_history(sec_ids: Optional[Iterable[str]] = __SELECTED__BONDS__):
@@ -66,4 +69,4 @@ def get_coupon_history(sec_ids: Optional[Iterable[str]] = __SELECTED__BONDS__):
     if sec_ids is None:
         return df
 
-    return df[(dt.f.SECID == sec_id for sec_id in sec_ids), :]
+    return df[(dt.f.secid == sec_id for sec_id in sec_ids), :]

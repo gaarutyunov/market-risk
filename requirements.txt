@@ -5,6 +5,7 @@ dateparser==1.1.1
 arch==5.2.0
 
 datatable~=1.0.0
-numpy~=1.21.0
+numpy~=1.22.3
 seaborn~=0.11.2
 matplotlib~=3.4.3
+arch~=5.2.0

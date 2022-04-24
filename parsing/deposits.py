@@ -5,8 +5,10 @@ import pandas as pd
 
 __DEPOSITS_PATH__ = Path("..", "data", "deposits")
 
+from parsing.base import Security
 
-def get_deposit_rates(currency: str = 'RUB') -> pd.DataFrame:
+
+def get_deposit_rates(currency: str = "RUB") -> pd.DataFrame:
     """Возвращает информацию по ставкам депозитов с 2014 по 2022 гг по заданной валюте.
 
     Источник: https://www.cbr.ru/vfs/statistics/pdko/int_rat/deposits.xlsx
@@ -29,4 +31,22 @@ def get_deposit_rates(currency: str = 'RUB') -> pd.DataFrame:
 
     :return: :class:`pandas.DataFrame` со ставками депозитов
     """
-    return pd.read_pickle(Path(str(__DEPOSITS_PATH__), currency + '.pickle'))
+    return pd.read_pickle(Path(str(__DEPOSITS_PATH__), currency + ".pickle"))
+
+
+class Deposit(Security):
+    def __init__(self, currency: str, period: str) -> None:
+        super().__init__("deposits", currency)
+        self.period = period
+
+    def _history(self):
+        df = get_deposit_rates(self.sec_id)
+        return df[[self.period]] / 100
+
+    def returns(self, column: str = "CLOSE", periods: int = 1) -> pd.Series:
+        return self.history[column].sort_index()
+
+    def plot_value_at_risk(
+        self, alpha: float = 0.99, window_length: int = 12, **kwargs
+    ):
+        super().plot_value_at_risk(self.period, 1, alpha, window_length, **kwargs)
