@@ -3,6 +3,7 @@ import pandas as pd
 
 import typing
 import arch
+import statsmodels.api as sm
 
 
 def calculate_historical(returns: pd.DataFrame, alpha: float = 0.99) -> float:
@@ -40,6 +41,29 @@ def calculate_garch(
     res = mdl.fit(disp="off")
     forecast = res.forecast(reindex=False)
     q = res.std_resid.quantile(1 - alpha)
+    mu = forecast.mean.values.item()
+    sigma = np.sqrt(forecast.variance.values.item())
+    var = -(mu + sigma * q) / 100
+    return var
+
+
+def calculate_sarimax(
+    returns: pd.DataFrame,
+    model_params: dict,
+    alpha: float = 0.99,
+    ) -> float:
+    """SARIMAX VaR
+
+    :param returns: Датафрейм с доходностью инструмента
+    :param model_params: Словарь с параметрами SARIMAX
+    :param alpha: Параметр альфа для VaR
+    :param dist: Распределение
+    :return:
+    """
+    mdl = sm.tsa.statespace.SARIMAX(returns * 100, **model_params)
+    mdl = mdl.fit()
+    forecast = mdl.predict(reindex=False)
+    q = mdl.resid.quantile(1 - alpha)
     mu = forecast.mean.values.item()
     sigma = np.sqrt(forecast.variance.values.item())
     var = -(mu + sigma * q) / 100
