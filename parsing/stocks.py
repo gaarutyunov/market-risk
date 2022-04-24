@@ -5,6 +5,8 @@ import datatable as dt
 
 from glob import glob
 
+import pandas as pd
+
 __STOCKS_FOLDER__ = Path("..", "data", "stocks")
 __SELECTED_STOCKS__ = (
     "ALRS",
@@ -18,6 +20,8 @@ __SELECTED_STOCKS__ = (
     "POLY",
     "ROSN",
 )
+
+from parsing.base import Security
 
 
 def get_stocks_history(sec_ids: Optional[Iterable[str]] = __SELECTED_STOCKS__):
@@ -38,3 +42,21 @@ def get_stocks_history(sec_ids: Optional[Iterable[str]] = __SELECTED_STOCKS__):
         return df
 
     return df[(dt.f.SECID == sec_id for sec_id in sec_ids), :]
+
+
+def get_stock_returns(prices, sec_id: str, periods: int = 1) -> pd.DataFrame:
+    """Получить доходность по акции в формате датафрейма"""
+    df: pd.DataFrame = prices[
+        dt.f.SECID == sec_id, ["TRADEDATE", "LEGALCLOSEPRICE"]
+    ].to_pandas()
+    df.set_index(keys=["TRADEDATE"], inplace=True)
+
+    return df.pct_change(periods=periods).sort_index()
+
+
+class Stock(Security):
+    def __init__(self, sec_id: str) -> None:
+        super().__init__("stocks", sec_id)
+
+    def returns(self, column: str = "LEGALCLOSEPRICE", periods: int = 1) -> pd.Series:
+        return super().returns(column, periods)

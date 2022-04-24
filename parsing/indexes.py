@@ -8,6 +8,10 @@ from glob import glob
 __INDEX_FOLDER__ = Path("..", "data", "index")
 __SELECTED_INDEXES__ = ("RTSI", "IMOEX")
 
+import pandas as pd
+
+from parsing.base import Security
+
 
 def get_indexes_history(sec_ids: Optional[Iterable[str]] = __SELECTED_INDEXES__):
     """Получить данные по индексам МосБиржи и РТС
@@ -30,3 +34,16 @@ def get_indexes_history(sec_ids: Optional[Iterable[str]] = __SELECTED_INDEXES__)
         return df
 
     return df[(dt.f.SECID == sec_id for sec_id in sec_ids), :]
+
+
+def get_index_returns(prices, sec_id: str, periods: int = 1) -> pd.DataFrame:
+    """Получить доходность по индексу в формате датафрейма"""
+    df: pd.DataFrame = prices[dt.f.SECID == sec_id, ["TRADEDATE", "CLOSE"]].to_pandas()
+    df.set_index(keys=["TRADEDATE"], inplace=True)
+
+    return df.pct_change(periods=periods).sort_index()
+
+
+class Index(Security):
+    def __init__(self, sec_id: str) -> None:
+        super().__init__("index", sec_id)
