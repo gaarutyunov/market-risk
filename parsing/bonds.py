@@ -76,7 +76,6 @@ class Bond(Security):
     def __init__(self, sec_id: str) -> None:
         super().__init__('bonds', sec_id)
         self.info = get_bonds_info([sec_id])
-        self.coupon_value = self.info[0, 'COUPONVALUE']
 
     @property
     def col_name(self) -> str:

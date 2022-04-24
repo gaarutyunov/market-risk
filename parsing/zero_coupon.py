@@ -45,4 +45,4 @@ class ZeroCoupon(Security):
             hist = self.history
         else:
             hist = self.history[column]
-        return hist.diff(periods)
+        return hist.diff(periods).dropna()
