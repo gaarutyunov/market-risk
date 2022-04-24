@@ -58,5 +58,9 @@ class Stock(Security):
     def __init__(self, sec_id: str) -> None:
         super().__init__("stocks", sec_id)
 
+    @property
+    def col_name(self) -> str:
+        return 'stock_' + self.sec_id
+
     def returns(self, column: str = "LEGALCLOSEPRICE", periods: int = 1) -> pd.Series:
         return super().returns(column, periods)

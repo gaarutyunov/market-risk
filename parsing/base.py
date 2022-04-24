@@ -50,40 +50,41 @@ class Security(abc.ABC):
 
     def value_at_risk(
         self,
-        column: Union[str, list[str]] = None,
         periods: int = 1,
         alpha: float = 0.99,
         window_length: int = 252,
         calc_func: Callable[[pd.DataFrame, float], float] = calculate_garch,
+        horizon: int = 1,
+        **kwargs
     ) -> pd.Series:
-        return calculate(self.returns(column, periods), calc_func, window_length, alpha)
+        return calculate(self.returns(periods=periods, **kwargs), calc_func, window_length, alpha, horizon=horizon, **kwargs)
 
     def plot_value_at_risk(
         self,
-        column: Union[str, list[str]] = None,
         periods: int = 1,
         alpha: float = 0.99,
         window_length: int = 252,
+        *args,
         **kwargs,
     ):
-        self.returns(column, periods).plot(
+        self.returns(periods=periods, **kwargs).plot(
             label=kwargs.get("returns_label", "Доходность")
         )
         (
             -(
                 self.value_at_risk(
-                    column,
                     periods,
                     alpha,
                     window_length,
                     calc_func=calculate_historical,
+                    **kwargs
                 )
             )
         ).plot(c="r", label="VaR (историческая симуляция)")
         (
             -(
                 self.value_at_risk(
-                    column, periods, alpha, window_length, calc_func=calculate_garch
+                    periods, alpha, window_length, calc_func=calculate_garch, **kwargs
                 )
             )
         ).plot(c="g", label="VaR (GARCH)")
@@ -93,24 +94,24 @@ class Security(abc.ABC):
         plt.legend()
         plt.show()
 
-    def pca(self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3):
+    def pca(self, periods: int = 1, k: int = 3, **kwargs):
         if self._pca is None or self._pca.n_components != k:
-            self._pca = PCA(n_components=k).fit(self.returns(column, periods))
+            self._pca = PCA(n_components=k).fit(self.returns(periods=periods, **kwargs))
 
         return self._pca
 
     def pca_transform(
-        self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3
+        self, periods: int = 1, k: int = 3, **kwargs
     ):
-        pca = self.pca(column, periods, k)
-        data = self.returns(column, periods)
+        pca = self.pca(periods, k, **kwargs)
+        data = self.returns(periods=periods, **kwargs)
         return pca.transform(data)
 
     def plot_pca(
-        self, column: Union[str, list[str]] = None, periods: int = 1, k: int = 3
+        self, periods: int = 1, k: int = 3, **kwargs
     ):
-        pca = self.pca(column, periods, k)
-        data = self.returns(column, periods)
+        pca = self.pca(periods, k, **kwargs)
+        data = self.returns(periods=periods, **kwargs)
         plt.plot(data.columns, pca.components_.T)
         plt.legend([f"pc$_{i}(t)$" for i in range(1, k + 1)])
         plt.title(f"First {k} principal components")
