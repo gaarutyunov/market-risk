@@ -96,9 +96,10 @@ def calculate_arima_garch(
 
 def calculate_sarimax(
     returns: pd.DataFrame,
-    model_params: dict,
     alpha: float = 0.99,
-    ) -> float:
+    model_params=None,
+    horizon: int = 1
+) -> float:
     """SARIMAX VaR
 
     :param returns: Датафрейм с доходностью инструмента
@@ -107,12 +108,14 @@ def calculate_sarimax(
     :param dist: Распределение
     :return:
     """
-    mdl = sm.tsa.statespace.SARIMAX(returns * 100, **model_params)
-    mdl = mdl.fit()
+    if model_params is None:
+        model_params = {}
+    mdl = sm.tsa.statespace.SARIMAX(returns * 100, order=(1, 1, 1), seasonal_order=(1, 1, 0, 10), **model_params)
+    mdl = mdl.fit(disp=False)
     forecast = mdl.predict(reindex=False)
     q = mdl.resid.quantile(1 - alpha)
-    mu = forecast.mean.values.item()
-    sigma = np.sqrt(forecast.variance.values.item())
+    mu = forecast.mean()
+    sigma = np.sqrt(forecast.var())
     var = -(mu + sigma * q) / 100
     return var
 
