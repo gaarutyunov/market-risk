@@ -6,7 +6,7 @@ import arch
 import pmdarima as pmdarima
 
 
-def calculate_historical(returns: pd.DataFrame, alpha: float = 0.99) -> float:
+def calculate_historical(returns: pd.DataFrame, alpha: float = 0.99, horizon: int = 10) -> float:
     """Исторический VaR
 
     :param returns: Датафрейм с доходностью инструмента
@@ -43,8 +43,8 @@ def calculate_garch(
     res = mdl.fit(disp="off")
     forecast = res.forecast(reindex=False, horizon=horizon)
     q = res.std_resid.quantile(1 - alpha)
-    mu = forecast.mean.values.item()
-    sigma = np.sqrt(forecast.variance.values.item())
+    mu = forecast.mean.values.ravel().item()
+    sigma = np.sqrt(forecast.variance.values.ravel().item())
     var = -(mu + sigma * q) / 100
 
     return var

@@ -42,52 +42,43 @@ class Security(abc.ABC):
         )
 
     def returns(
-        self, column: Union[str, list[str]] = "CLOSE", periods: int = 1
+            self, column: Union[str, list[str]] = "CLOSE", periods: int = 1
     ) -> pd.Series:
         return (
             self.history[column].replace(0, np.nan).dropna().pct_change(periods=periods)
         )
 
     def value_at_risk(
-        self,
-        periods: int = 1,
-        alpha: float = 0.99,
-        window_length: int = 252,
-        calc_func: Callable[[pd.DataFrame, float], float] = calculate_garch,
-        horizon: int = 1,
-        **kwargs
+            self,
+            periods: int = 1,
+            alpha: float = 0.99,
+            window_length: int = 252,
+            calc_func: Callable[[pd.DataFrame, float], float] = calculate_garch,
+            horizon: int = 1,
+            **kwargs
     ) -> pd.Series:
-        return calculate(self.returns(periods=periods, **kwargs), calc_func, window_length, alpha, horizon=horizon, **kwargs)
+        return calculate(self.returns(periods=periods, **kwargs), calc_func, window_length, alpha, horizon=horizon,
+                         **kwargs)
 
     def plot_value_at_risk(
-        self,
-        periods: int = 1,
-        alpha: float = 0.99,
-        window_length: int = 252,
-        *args,
-        **kwargs,
+            self,
+            periods: int = 1,
+            alpha: float = 0.99,
+            window_length: int = 252,
+            return_kwargs=None,
+            calc_func: Callable[[pd.DataFrame, float], float] = calculate_garch,
+            *args,
+            **kwargs,
     ):
-        self.returns(periods=periods, **kwargs).plot(
+        if return_kwargs is None:
+            return_kwargs = {}
+        self.returns(periods=periods, **return_kwargs).plot(
             label=kwargs.get("returns_label", "Доходность")
         )
-        (
-            -(
-                self.value_at_risk(
-                    periods,
-                    alpha,
-                    window_length,
-                    calc_func=calculate_historical,
-                    **kwargs
-                )
-            )
-        ).plot(c="r", label="VaR (историческая симуляция)")
-        (
-            -(
-                self.value_at_risk(
-                    periods, alpha, window_length, calc_func=calculate_garch, **kwargs
-                )
-            )
-        ).plot(c="g", label="VaR (GARCH)")
+        VaR = self.value_at_risk(
+            periods, alpha, window_length, calc_func=calculate_garch, **kwargs
+        )
+        (-VaR).plot(c="g", label=kwargs.get('var_title', 'VaR'))
         plt.title(kwargs.get("title", "VaR " + self.sec_id))
         plt.ylabel(kwargs.get("ylabel", "Доходность"))
         plt.xlabel("Дата")
@@ -101,14 +92,14 @@ class Security(abc.ABC):
         return self._pca
 
     def pca_transform(
-        self, periods: int = 1, k: int = 3, **kwargs
+            self, periods: int = 1, k: int = 3, **kwargs
     ):
         pca = self.pca(periods, k, **kwargs)
         data = self.returns(periods=periods, **kwargs)
         return pca.transform(data)
 
     def plot_pca(
-        self, periods: int = 1, k: int = 3, **kwargs
+            self, periods: int = 1, k: int = 3, **kwargs
     ):
         pca = self.pca(periods, k, **kwargs)
         data = self.returns(periods=periods, **kwargs)

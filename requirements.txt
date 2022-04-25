@@ -13,3 +13,5 @@ scikit-learn~=1.0
 statsmodels~=0.13.2
 tqdm~=4.62.3
 tqdm~=4.62.3
+
+pmdarima~=1.8.5

@@ -39,8 +39,7 @@ class SecurityGroup(Security):
             self.securities_df[security.col_name] = security.returns(periods=periods)
         self.coefs = pd.DataFrame()
         self.models = {}
-        self.fitted_ = False
-        self.pca_ = None
+        self.pca_: PCA = None
         for factor in factors:
             rets = factor.returns(periods=periods)
             if len(rets.shape) == 1:
@@ -53,11 +52,9 @@ class SecurityGroup(Security):
     def fit(self):
         """Вычисляет значения коэффициентов для риск-факторов.
         В процессе так же вычисляет главные компоненты, использую PCA."""
-        if self.fitted_:
-            return
-
         data = self.securities_df.copy()
-
+        self.models = {}
+        self.coefs = pd.DataFrame()
         self.pca_: PCA = PCA(n_components=self.n_components).fit(self.factors_df)
         self.factors_pca: pd.DataFrame = pd.DataFrame(data=self.pca_.transform(self.factors_df.dropna()), index=self.factors_df.index)
 
@@ -73,30 +70,28 @@ class SecurityGroup(Security):
 
             f += '1'
             model = ols(f, data).fit()
-            self.models[security.sec_id] = model
-            self.coefs[security.sec_id] = model.params
-
-        self.fitted_ = True
+            self.models[security.col_name] = model
+            self.coefs[security.col_name] = model.params
 
     def returns(self, column: Union[str, list[str]] = "CLOSE", periods: int = 1) -> pd.Series:
         """Вычисляет доходность всей группы инструментов"""
         weights = self.compute_weights()
-        factors = self.factors_pca @ weights
+        new_values = pd.DataFrame()
+        for security, returns in self.securities_df.items():
+            new_values[security] = returns * weights[security]
+        factors = new_values @ self.coefs.T
 
         return factors.sum(axis=1)
 
     def compute_weights(self):
-        """Вычисляет веса для риск факторов на основе вычисленных
-         заранее коэффициентов и веса каждого из инструментов в портфеле.
+        """Вычисляет веса для ребалансировки инструментов.
          Для простоты используется equally-weighted подход."""
         n_securities = self.securities_df.shape[1]
         initial_weights = self.weight / n_securities
         prev_date = self.securities_df.shift(-1)
         new_weights: pd.DataFrame = pd.DataFrame(initial_weights * (1 - prev_date), index=self.securities_df.index)
 
-        self.sensitivities = new_weights @ self.coefs
-
-        return self.sensitivities
+        return new_weights
 
 
 class Portfolio(Security):
@@ -129,7 +124,7 @@ class Portfolio(Security):
     def fit(self):
         """Вычисляет коэффициенты для каждой из групп активов по заданным риск факторам"""
         for name, sec_group in (pbar := tqdm(self.security_groups.items())):
-            pbar.set_description('Fitting group %s' % name)
+            pbar.set_description('Поиск параметров для группы %s' % name)
             sec_group.fit()
             for _, model in sec_group.models.items():
                 print(model.summary())
