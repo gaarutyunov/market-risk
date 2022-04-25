@@ -43,8 +43,8 @@ def calculate_garch(
     res = mdl.fit(disp="off")
     forecast = res.forecast(reindex=False, horizon=horizon)
     q = res.std_resid.quantile(1 - alpha)
-    mu = forecast.mean.values.ravel().item()
-    sigma = np.sqrt(forecast.variance.values.ravel().item())
+    mu = forecast.mean.values.ravel()[-1].item()
+    sigma = np.sqrt(forecast.variance.values.ravel()[-1].item())
     var = -(mu + sigma * q) / 100
 
     return var
@@ -65,7 +65,7 @@ def calculate_arima_garch(
     ] = "normal",
     horizon: int = 1
 ) -> float:
-    """GARCH VaR
+    """ARIMA-GARCH VaR
 
     :param horizon: Горизонт предсказания
     :param returns: Датафрейм с доходностью инструмента
@@ -105,3 +105,5 @@ def calculate(
         args=args,
         kwargs=kwargs,
     )
+
+
